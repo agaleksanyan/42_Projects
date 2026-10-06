@@ -1,0 +1,26 @@
+"""Static types for the public SDK interface used by this project."""
+
+from typing import Protocol
+
+
+class EncodedTokens(Protocol):
+    def tolist(self) -> list[list[int]]: ...
+
+
+class Small_LLM_Model:
+    def __init__(
+        self,
+        model_name: str = ...,
+        *,
+        device: str | None = ...,
+        dtype: object = ...,
+        trust_remote_code: bool = ...,
+    ) -> None: ...
+    def encode(self, text: str) -> EncodedTokens: ...
+    def decode(self, ids: EncodedTokens | list[int]) -> str: ...
+    def get_logits_from_input_ids(
+        self, input_ids: list[int]
+    ) -> list[float]: ...
+    def get_path_to_vocab_file(self) -> str: ...
+    def get_path_to_merges_file(self) -> str: ...
+    def get_path_to_tokenizer_file(self) -> str: ...

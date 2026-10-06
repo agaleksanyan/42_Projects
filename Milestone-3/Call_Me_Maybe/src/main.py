@@ -1,39 +1,69 @@
 import argparse
-from pathlib import Path
+import sys
+from time import perf_counter
 
-DEFAULT_FUNCTION_PATH = Path("data/input/functions_definition.json")
-DEFAULT_INPUT_PATH = Path("data/input/function_calling_tests.json")
-DEFAULT_OUTPUT_PATH = Path("data/output/function_calling_results.json")
+from pydantic import TypeAdapter
 
-
-def parse_arguments() -> argparse.Namespace:
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-f",
-        "--functions_definition",
-        type=Path,
-        default=DEFAULT_FUNCTION_PATH,
-        help="Path to the JSON file containing function definitions.",
-    )
-    parser.add_argument(
-        "-i",
-        "--input",
-        type=Path,
-        default=DEFAULT_INPUT_PATH,
-        help="Path to the JSON file containing function calling tests.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=Path,
-        default=DEFAULT_OUTPUT_PATH,
-        help="Path to the JSON file where function calling results will be saved.",
-    )
-    return parser.parse_args()
+from .file_io import read_json, write_json
+from .models import FunctionCallingRequest, FunctionDefinition
+from .pipeline import run_requests
 
 
 def main() -> int:
+    """Read inputs, generate function calls, and save the complete batch."""
+    parser = argparse.ArgumentParser(
+        description="Convert natural-language requests into function calls."
+    )
+    parser.add_argument(
+        "--input",
+        "-i",
+        default="data/input/function_calling_tests.json",
+        help="Path to the input JSON file.",
+    )
+    parser.add_argument(
+        "--functions_definition",
+        "-f",
+        default="data/input/functions_definition.json",
+        help="Path to the function definitions JSON file.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        default="data/output/function_calling_results.json",
+        help="Path to the output JSON file.",
+    )
+    args = parser.parse_args()
 
-    arguments = parse_arguments()
-    return 0
+    started = perf_counter()
+
+    try:
+        definitions = TypeAdapter(
+            list[FunctionDefinition]
+        ).validate_python(
+            read_json(args.functions_definition)
+        )
+
+        requests = TypeAdapter(
+            list[FunctionCallingRequest]
+        ).validate_python(
+            read_json(args.input)
+        )
+
+        print(f"Loaded functions: {len(definitions)}")
+        print(f"Loaded requests: {len(requests)}")
+
+        results = run_requests(requests, definitions)
+        write_json(args.output, results)
+
+        elapsed = perf_counter() - started
+        print(f"Saved {len(results)} calls to {args.output}")
+        print(f"Elapsed: {elapsed:.2f} seconds")
+        return 0
+
+    except KeyboardInterrupt:
+        print("Interrupted.", file=sys.stderr)
+        return 130
+
+    except Exception as error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1

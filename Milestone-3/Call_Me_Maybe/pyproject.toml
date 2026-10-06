@@ -1,23 +1,22 @@
 [project]
 name = "call-me-maybe"
 version = "0.1.0"
-description = "42 Call-Me-Maybe project"
-requires-python = ">=3.10,<3.13"
-
+requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.26,<2",
-    "pydantic",
+    "pydantic>=2,<3",
+    "numpy",
     "llm-sdk",
-]
-
-[tool.uv]
-required-environments = [
-    "sys_platform == 'darwin' and platform_machine == 'x86_64'",
-]
-constraint-dependencies = [
-    "torch==2.2.2",
-    "transformers==4.57.6",
 ]
 
 [tool.uv.sources]
 llm-sdk = { path = "llm_sdk" }
+
+[dependency-groups]
+dev = [
+    "flake8>=7.4.1",
+    "mypy>=2.4.0",
+]
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/typings"
+exclude = ["^llm_sdk/", "^\\.venv/", "^typings/"]

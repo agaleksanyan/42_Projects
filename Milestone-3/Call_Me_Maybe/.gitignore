@@ -1,25 +1,9 @@
-# macOS
-.DS_Store
-
-# Python
+.venv/
 __pycache__/
-*.pyc
+*.py[cod]
 .mypy_cache/
 .pytest_cache/
-venv/
-.venv/
-matrix_env/
-
-# Environment variables
-.env
-
-# C
-*.o
-a.out
-*.a
-
-# VS Code
-.vscode/
-
-# Temporary
-*.swp
+.ruff_cache/
+data/output/
+output/
+*.zip
