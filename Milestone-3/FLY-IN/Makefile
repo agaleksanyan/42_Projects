@@ -15,6 +15,7 @@ debug:
 
 clean:
 	rm -rf __pycache__ .mypy_cache .pytest_cache
+	rm -rf .venv
 	find . -name "*.pyc" -delete
 	find . -name "__pycache__" -type d -delete
 
